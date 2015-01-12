@@ -1,0 +1,24 @@
+package tsp;
+
+public class City {
+	public int nr;
+	public int x;
+	public int y;
+	
+	public City(int nr, int x, int y){
+		this.nr=nr;
+		this.x=x;
+		this.y=y;
+	}
+	
+	public String toString(){
+		return this.x+","+this.y;
+	}
+	
+	public double distanceTo(City city){
+		double xDist = Math.abs(this.x - city.x);
+		double yDist = Math.abs(this.y - city.y);
+		double Distance = Math.sqrt((xDist*xDist)+(yDist*yDist));
+		return Distance;
+	}
+}

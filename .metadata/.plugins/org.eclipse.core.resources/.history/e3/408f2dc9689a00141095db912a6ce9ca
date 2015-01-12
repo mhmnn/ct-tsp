@@ -1,0 +1,13 @@
+package tsp;
+
+public class City {
+	public int nr;
+	public int x;
+	public int y;
+	
+	public City(int nr, int x, int y){
+		this.nr=nr;
+		this.x=x;
+		this.y=y;
+	}
+}

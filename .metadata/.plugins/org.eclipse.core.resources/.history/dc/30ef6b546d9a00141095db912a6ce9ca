@@ -1,0 +1,15 @@
+package tsp;
+
+public class Main {
+
+	public static double distanceBtw(City city1, City city2){
+		double xDist = Math.abs(city1.x - city2.x);
+		double yDist = Math.abs(city1.y - city2.y);
+		double Distance = Math.sqrt((xDist*xDist)+(yDist*yDist));
+		return Distance;
+	}
+	
+	public static void main(String[] args){
+		
+	}
+}

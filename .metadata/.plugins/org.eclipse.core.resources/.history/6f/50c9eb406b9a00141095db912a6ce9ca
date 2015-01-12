@@ -1,0 +1,24 @@
+package tsp;
+
+import java.util.ArrayList;
+
+public class Tour {
+	public ArrayList tour;
+	public double total_distance = 0;
+	
+	public Tour(){
+		tour = new ArrayList<City>();
+	}
+	
+	public void addCity(City city){
+		tour.add(city);
+	}
+	
+	public String toString(){
+		String output="";
+		for(int i=0; i< tour.size();i++){
+			output += tour.get(i)+" ";
+		}
+		return output;
+	}
+}

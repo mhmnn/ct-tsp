@@ -1,0 +1,54 @@
+package tsp;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class Main {
+
+	public static double distanceBtw(City city1, City city2){
+		double xDist = Math.abs(city1.x - city2.x);
+		double yDist = Math.abs(city1.y - city2.y);
+		double Distance = Math.sqrt((xDist*xDist)+(yDist*yDist));
+		return Distance;
+	}
+	
+	public static Tour readFile(String path) throws IOException{
+		Tour newtour = new Tour();
+		BufferedReader br = null;
+		try{
+			br = new BufferedReader(new FileReader(path));
+			String line = br.readLine();
+			while(line.equals("EOF")){
+				if(!(line.contains("NODE_COORD_SECTION")))
+					br.readLine();
+				else{
+					line = br.readLine();
+					String[] infos = line.split(" ");
+					City c = new City(Integer.parseInt(infos[0]), Double.parseDouble(infos[0]), Double.parseDouble(infos[0]));
+					newtour.addCity(c);
+				}
+			}
+		}
+		finally{
+			br.close();
+		}
+		
+		return newtour;
+	}
+	
+	public static void main(String[] args){
+		Tour tour = new Tour();
+		try {
+			tour = readFile("berlin52.tsp");
+//			tour = readFile("ch130.tsp");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		tour.calDistance();
+		
+		for(City c : tour.tour){
+			System.out.println(c);
+		}
+	}
+}
