@@ -114,7 +114,7 @@ public class Main {
 		
 		curr_tour.calDistance();
 		System.out.println("Erste Loesung (vor NN): "+curr_tour.total_distance);
-		
+		long startTime = System.currentTimeMillis();
 		curr_tour.nearestNeighbor(8);
 		curr_tour.calDistance();
 		System.out.println("Erste Loesung (nach NN): "+curr_tour.total_distance);
@@ -166,7 +166,9 @@ public class Main {
             // Abkühlung
             temp *= 1-coolingRate;
 		}
-		System.out.println("Beste Loesung (Distanz): "+ best.calDistance());
+		long endTime   = System.currentTimeMillis();
+		long totalTime = endTime - startTime;
+		System.out.println("Beste Lösung (Distanz): "+ best.calDistance()+ " in "+totalTime+" ms");
 		System.out.println("Tour: "+best);
 		
 		//Graphische Ausgabe
