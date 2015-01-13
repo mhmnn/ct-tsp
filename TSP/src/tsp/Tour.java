@@ -10,6 +10,7 @@ public class Tour {
 		tour = new ArrayList<City>();
 	}
 	
+	@SuppressWarnings("unchecked")
 	public Tour(ArrayList<City> tour){
         this.tour = (ArrayList<City>) tour.clone();
     }
@@ -48,4 +49,51 @@ public class Tour {
 		}
 		return output;
 	}
+	
+	private int[][] getDistanceMatrix(){
+		int s = tour.size();
+		int[][] dm = new int[s][s];
+		for(int i = 0; i<s; ++i){
+			for(int j = 0; j<s; ++j){
+				dm[i][j] = (int) tour.get(i).distanceTo(tour.get(j));
+			}
+		}
+		return dm;
+	}
+	
+	private int findMin(int[] row, ArrayList<City> old){
+        int nextCity = -1;
+        int min = Integer.MAX_VALUE;
+        
+        for(int i = 0; i < row.length; ++i) {
+        	if(row[i] < min) {
+        		if( !tour.contains(old.get(i)) ){
+        			min = row[i];
+        			nextCity = i;
+                }
+            }
+        }
+        return nextCity;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void nearestNeighbor(int startCity){
+		ArrayList<City> old = (ArrayList<City>) tour.clone();
+		int[][] distanceMatrix = getDistanceMatrix();
+		int currentCity = startCity;
+		int nextCity = -1;
+		
+		tour.clear();
+		tour.add(old.get(startCity));
+				
+		for(int i = 1; i<old.size(); ){
+			nextCity = findMin(distanceMatrix[currentCity], old);
+			if(nextCity != -1) {
+                tour.add(old.get(nextCity));
+                currentCity = nextCity;
+                i++;
+			}
+		}
+	}
+	
 }

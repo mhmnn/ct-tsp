@@ -50,11 +50,18 @@ public class Main {
 		Tour tour = new Tour();
 		try {
 			tour = readFile("src/tsp/berlin52.tsp");
-//			tour = readFile("ch130.tsp");
+// 			tour = readFile("src/tsp/ch130.tsp");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		
 		tour.calDistance();
+		System.out.println("Erste Loesung (vor NN): "+tour.total_distance);
+		
+		tour.nearestNeighbor(8);
+		tour.calDistance();
+		System.out.println("Erste Loesung (nach NN): "+tour.total_distance);
 		
 //		for(City c : tour.tour){
 //			System.out.println(c);
@@ -63,12 +70,11 @@ public class Main {
 		//----- SIMULATED ANNEALING ALGORITHM -----
 		
 		// temperature
-		double temp = 10000;
+		double temp = 100000;
 		
 		// cooling rate
-		double coolingRate = 0.003;
+		double coolingRate = 0.0000003;
 		
-		System.out.println("Erste Lösung: "+tour.total_distance);
 		
 		Tour best = new Tour(tour.tour);
 		
@@ -89,9 +95,9 @@ public class Main {
             
             // Get energy of solutions
             double currentEnergy = tour.calDistance();
-            double neighbourEnergy = tour.calDistance();
+            double neighbourEnergy = newSolution.calDistance();
 
-            // Decide if we should accept the neighbour
+            // Decide if we should accept the neighbor
             if (annealing(currentEnergy, neighbourEnergy, temp) > Math.random()) {
                 tour = new Tour(newSolution.tour);
             }
@@ -104,7 +110,7 @@ public class Main {
             // Cool system
             temp *= 1-coolingRate;
 		}
-		System.out.println("Beste Lösung (Distanz): "+ best.calDistance());
+		System.out.println("Beste Loesung (Distanz): "+ best.calDistance());
 		System.out.println("Tour: "+best);
 	}
 }
