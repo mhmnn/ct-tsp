@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -115,9 +116,18 @@ public class Main {
 		curr_tour.calDistance();
 		System.out.println("Erste Loesung (vor NN): "+curr_tour.total_distance);
 		long startTime = System.currentTimeMillis();
-		curr_tour.nearestNeighbor(8);
-		curr_tour.calDistance();
-		System.out.println("Erste Loesung (nach NN): "+curr_tour.total_distance);
+		
+		int s = curr_tour.tour.size();
+		
+		double[] nndistance = new double[s];
+		double[] annealdistance = new double[s];
+		Tour[] alltours = new Tour[s];
+		
+		for(int i = 0; i < s; ++i){
+		System.out.print("Now entering round "+i+" from "+s);	
+		long runStartTime = System.currentTimeMillis();
+		curr_tour.nearestNeighbor(i);
+		nndistance[i] = curr_tour.calDistance();
 		
 //		for(City c : tour.tour){
 //			System.out.println(c);
@@ -129,19 +139,20 @@ public class Main {
 		double temp = 100000;
 		
 		// cooling rate
-		double coolingRate = 0.000003;
+		double coolingRate = 0.00001;
 		
 		
 		Tour best = new Tour(curr_tour.tour);
 		
 		while(temp > 1){
+
 			Tour newSolution = new Tour(curr_tour.tour);
 
-            // Zufällige Position
+            // Zufaellige Position
             int tourPos1 = (int) (newSolution.tour.size() * Math.random());
             int tourPos2 = (int) (newSolution.tour.size() * Math.random());
 
-            // Auswählen der Städte
+            // Auswaehlen der Staedte
             City citySwap1 = newSolution.tour.get(tourPos1);
             City citySwap2 = newSolution.tour.get(tourPos2);
 
@@ -149,7 +160,7 @@ public class Main {
             newSolution.insertCity(tourPos2, citySwap1);
             newSolution.insertCity(tourPos1, citySwap2);
             
-            // Kühlung ermitteln
+            // Kuehlung ermitteln
             double currentEnergy = curr_tour.calDistance();
             double neighbourEnergy = newSolution.calDistance();
 
@@ -158,25 +169,47 @@ public class Main {
             	curr_tour = new Tour(newSolution.tour);
             }
 
-            // Beste Lösung speichern
+            // Beste Loesung speichern
             if (curr_tour.calDistance() < best.calDistance()) {
                 best = new Tour(curr_tour.tour);
             }
             
-            // Abkühlung
+            // Abkuehlung
             temp *= 1-coolingRate;
 		}
+		
+		alltours[i] = best;
+		annealdistance[i] = best.calDistance();
+		long runEndTime   = System.currentTimeMillis();
+		System.out.print(" ...finished after "+(runEndTime - runStartTime)+"ms with a final distance of "+annealdistance[i]+"\n");
+		}
+		
 		long endTime   = System.currentTimeMillis();
 		long totalTime = endTime - startTime;
-		System.out.println("Beste Lösung (Distanz): "+ best.calDistance()+ " in "+totalTime+" ms");
-		System.out.println("Tour: "+best);
 		
+		int bestanneal = 0;
+		int bestnn = 0;
+		
+		for(int i = 0; i < s; ++i) {
+			if(nndistance[i] < nndistance[bestnn]) bestnn = i;
+			if(annealdistance[i] < annealdistance[bestanneal]) bestanneal = i;
+		}
+				
+		
+		System.out.println("Beste Loesung (Distanz): "+ annealdistance[bestanneal] + " in "+totalTime+" ms"); //7542 is optimal
+		System.out.println("Tour: "+alltours[bestanneal]);
+		curr_tour.nearestNeighbor(bestnn);
+		System.out.println(bestnn+" Debugtest: "+curr_tour.calDistance());
+		Arrays.sort(nndistance);
+		Arrays.sort(annealdistance);
+		System.out.println("All NN-Distances: "+Arrays.toString(nndistance));
+		System.out.println("All Annealing-Distances: "+Arrays.toString(annealdistance));
 		//Graphische Ausgabe
 		JFrame fa = new JFrame("Graph");
 		fa.setVisible(true);
 		fa.setSize(600, 600);
 		fa.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		JPanel pa = new Panel(best.tour);
+		JPanel pa = new Panel(curr_tour.tour);
 		fa.add(pa);
 	}
 }
