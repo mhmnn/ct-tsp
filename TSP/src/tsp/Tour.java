@@ -1,8 +1,17 @@
 package tsp;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Tour {
+	
+	public static double annealing(double energy, double newEnergy, double temperature){
+		if(newEnergy < energy)
+			return 1.0;
+		else
+			return Math.exp((energy-newEnergy)/temperature);
+	}
+	
 	public ArrayList<City> tour;
 	public double total_distance = 0;
 	
@@ -96,4 +105,53 @@ public class Tour {
 		}
 	}
 	
+	public void shuffle(){
+		Collections.shuffle(tour);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void simulatedAnnealing(double t, double cR){
+		// temperature
+		double temp = t;
+		
+		// cooling rate
+		double coolingRate = cR;
+		
+		
+		Tour best = new Tour(this.tour);
+		
+		while(temp > 1){
+
+			Tour newSolution = new Tour(this.tour);
+
+            // Zufaellige Position
+            int tourPos1 = (int) (newSolution.tour.size() * Math.random());
+            int tourPos2 = (int) (newSolution.tour.size() * Math.random());
+
+            // Auswaehlen der Staedte
+            City citySwap1 = newSolution.tour.get(tourPos1);
+            City citySwap2 = newSolution.tour.get(tourPos2);
+
+            // Tauschen
+            newSolution.insertCity(tourPos2, citySwap1);
+            newSolution.insertCity(tourPos1, citySwap2);
+            
+            // Kuehlung ermitteln
+            double currentEnergy = this.calDistance();
+            double neighbourEnergy = newSolution.calDistance();
+
+            // Entscheiden, ob beibehalten
+            if (annealing(currentEnergy, neighbourEnergy, temp) > Math.random()) {
+            	this.tour = (ArrayList<City>)((newSolution.tour)).clone();
+            }
+
+            // Beste Loesung speichern
+            if (this.calDistance() < best.calDistance()) {
+                best = new Tour(this.tour);
+            }
+            
+            // Abkuehlung
+            temp *= 1-coolingRate;
+		}
+	}
 }

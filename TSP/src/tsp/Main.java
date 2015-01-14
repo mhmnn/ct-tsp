@@ -3,8 +3,12 @@ package tsp;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -18,9 +22,11 @@ class Panel extends JPanel{
 	 */
 	private static final long serialVersionUID = 1L;
 	ArrayList<City> drawCities;
+	int display_factor;
 	
-	Panel(ArrayList<City> c){
-		this.drawCities = c;			
+	Panel(ArrayList<City> c, int f){
+		this.drawCities = c;
+		this.display_factor = f;
 	}
 	
 	void setArrayList(ArrayList<City> c){
@@ -36,7 +42,7 @@ class Panel extends JPanel{
 //		g.drawRoundRect((int)c1.x, (int)c1.y, 5, 5, 2, 2);
 		City cf,ct;
 		cf = c1;
-		int f = 3;		//factor
+		int f = this.display_factor;		//factor berlin 3 ch 2
 		int x1,x2,y1,y2;
 		x2 = (int)cf.x/f;
 		y2 = (int)cf.y/f;
@@ -77,7 +83,7 @@ public class Main {
 			String line = br.readLine();
 			int ii=0;
 			while(line != null){
-				if(ii == 0 ||ii == 1 || ii == 2 || ii == 3 || ii == 4 || ii == 5 || ii == 58){
+				if(ii == 0 ||ii == 1 || ii == 2 || ii == 3 || ii == 4 || ii == 5 || line.equals("EOF")){
 					;
 				}
 				else{
@@ -96,121 +102,80 @@ public class Main {
 		return newtour;
 	}
 	
-	public static double annealing(double energy, double newEnergy, double temperature){
-		if(newEnergy < energy)
-			return 1.0;
-		else
-			return Math.exp((energy-newEnergy)/temperature);
-	}
-	
-	public static void main(String[] args){
+	@SuppressWarnings("unchecked")
+	public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException{
 		Tour curr_tour = new Tour();
+		int disp_fac=2;
 		try {
-			curr_tour = readFile("src/tsp/berlin52.tsp");
-// 			tour = readFile("src/tsp/ch130.tsp");
+//			curr_tour = readFile("src/tsp/berlin52.tsp");
+//			disp_fac=3;
+ 			curr_tour = readFile("src/tsp/ch130.tsp");
+ 			disp_fac=2;		// berlin 3 ch 2
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-		
+		}		
 		
 		curr_tour.calDistance();
 		System.out.println("Erste Loesung (vor NN): "+curr_tour.total_distance);
-		long startTime = System.currentTimeMillis();
-		
-		int s = curr_tour.tour.size();
-		
-		double[] nndistance = new double[s];
-		double[] annealdistance = new double[s];
-		Tour[] alltours = new Tour[s];
-		
-		for(int i = 0; i < s; ++i){
-		System.out.print("Now entering round "+i+" from "+s);	
-		long runStartTime = System.currentTimeMillis();
+		// kNN		
 		curr_tour.shuffle();
-		curr_tour.nearestNeighbor(i);
-		nndistance[i] = curr_tour.calDistance();
-		
-//		for(City c : tour.tour){
-//			System.out.println(c);
-//		}
-		
-		//----- SIMULATED ANNEALING ALGORITHM -----
-		
-		// temperature
-		double temp = 100;
-		
-		// cooling rate
-		double coolingRate = 0.0000003;
-		
-		
-		Tour best = new Tour(curr_tour.tour);
-		
-		while(temp > 1){
-
-			Tour newSolution = new Tour(curr_tour.tour);
-
-            // Zufaellige Position
-            int tourPos1 = (int) (newSolution.tour.size() * Math.random());
-            int tourPos2 = (int) (newSolution.tour.size() * Math.random());
-
-            // Auswaehlen der Staedte
-            City citySwap1 = newSolution.tour.get(tourPos1);
-            City citySwap2 = newSolution.tour.get(tourPos2);
-
-            // Tauschen
-            newSolution.insertCity(tourPos2, citySwap1);
-            newSolution.insertCity(tourPos1, citySwap2);
-            
-            // Kuehlung ermitteln
-            double currentEnergy = curr_tour.calDistance();
-            double neighbourEnergy = newSolution.calDistance();
-
-            // Entscheiden, ob beibehalten
-            if (annealing(currentEnergy, neighbourEnergy, temp) > Math.random()) {
-            	curr_tour = new Tour(newSolution.tour);
-            }
-
-            // Beste Loesung speichern
-            if (curr_tour.calDistance() < best.calDistance()) {
-                best = new Tour(curr_tour.tour);
-            }
-            
-            // Abkuehlung
-            temp *= 1-coolingRate;
+		curr_tour.nearestNeighbor(1);
+		System.out.println("Erste Lösung (nach NN): "+curr_tour.calDistance());
+		// Protokoll Variablen
+		int i=0;
+		int best_index=0;
+		double best_value=99999999;
+		Tour best_tour = null;
+		long best_time=0;
+		double best_temp=0, best_cooling=0;
+		ArrayList<Double> solution_value = new ArrayList<Double>();
+		ArrayList<Double> solution_temp = new ArrayList<Double>();
+		ArrayList<Double> solution_cooling = new ArrayList<Double>();
+		ArrayList<Long> solution_time = new ArrayList<Long>();
+		String csv ="";
+		//Änderung Temperatur
+		for(double temp = 10000; temp>900;temp-=2000){
+			//Änderung Cooling Rate
+			for(double cR=0.0006; cR>0.000003; cR=cR*0.1){
+				long startTime = System.currentTimeMillis();
+				curr_tour.simulatedAnnealing(temp, cR);
+				solution_value.add(curr_tour.calDistance());
+				solution_temp.add(temp);
+				solution_cooling.add(cR);
+				long endTime   = System.currentTimeMillis();
+				long totalTime = endTime - startTime;
+				solution_time.add(totalTime);
+				if(curr_tour.total_distance < best_value){
+					best_value = curr_tour.total_distance;
+					best_temp = temp;
+					best_time = totalTime;
+					best_cooling = cR;
+					best_index = i;
+					best_tour = new Tour((ArrayList<City>) curr_tour.tour.clone());
+				}
+				System.out.println("Lösung "+(i+1)+": temp - "+temp+" cooling Rate - "+new DecimalFormat("#.#######").format(cR)+" value - "+curr_tour.total_distance+ " time - "+totalTime+" ms");
+				csv += temp+";"+new DecimalFormat("#.#######").format(cR)+";"+new DecimalFormat("#.#######").format(curr_tour.total_distance)+";"+totalTime;
+				csv+= "\n";
+				i++;
+			}
 		}
+		System.out.println("-----------------");
+		//beste: 7542 (berlin) 6110 (ch130)
+//		System.out.println("Beste Lösung ("+(best_index+1)+"): "+ solution_value.get(best_index)+ " in "+solution_time.get(best_index)+" ms mit temp: "+solution_temp.get(best_index)+" - cooling Rate: "+new DecimalFormat("#.#####").format(solution_cooling.get(best_index)));
+		System.out.println("Beste Lösung: "+ best_value+ " in "+best_time+" ms mit temp: "+best_temp+" - cooling Rate: "+new DecimalFormat("#.#######").format(best_cooling));
+		System.out.println("Tour: "+best_tour);
 		
-		alltours[i] = best;
-		annealdistance[i] = best.calDistance();
-		long runEndTime   = System.currentTimeMillis();
-		System.out.print(" ...finished after "+(runEndTime - runStartTime)+"ms with a final distance of "+annealdistance[i]+"\n");
-		}
+		//write File
+		PrintWriter writer = new PrintWriter("src/tsp/output.csv", "UTF-8");
+		writer.println(csv);
+		writer.close();
 		
-		long endTime   = System.currentTimeMillis();
-		long totalTime = endTime - startTime;
-		
-		int bestanneal = 0;
-		int bestnn = 0;
-		
-		for(int i = 0; i < s; ++i) {
-			if(nndistance[i] < nndistance[bestnn]) bestnn = i;
-			if(annealdistance[i] < annealdistance[bestanneal]) bestanneal = i;
-		}
-				
-		
-		System.out.println("Beste Loesung (Distanz): "+ annealdistance[bestanneal] + " in "+totalTime+" ms"); //7542 is optimal
-		System.out.println("Tour: "+alltours[bestanneal]);
-		curr_tour.nearestNeighbor(bestnn);
-		System.out.println(bestnn+" Debugtest: "+curr_tour.calDistance());
-		Arrays.sort(nndistance);
-		Arrays.sort(annealdistance);
-		System.out.println("All NN-Distances: "+Arrays.toString(nndistance));
-		System.out.println("All Annealing-Distances: "+Arrays.toString(annealdistance));
 		//Graphische Ausgabe
 		JFrame fa = new JFrame("Graph");
 		fa.setVisible(true);
 		fa.setSize(600, 600);
 		fa.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		JPanel pa = new Panel(curr_tour.tour);
+		JPanel pa = new Panel(curr_tour.tour, disp_fac);
 		fa.add(pa);
 	}
 }
