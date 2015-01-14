@@ -154,4 +154,21 @@ public class Tour {
             temp *= 1-coolingRate;
 		}
 	}
+	
+	public long runAll(int StartCity, double temperature, double coolingRate, int runs){
+		Tour cache = new Tour(this.tour);
+		long startTime = System.currentTimeMillis();
+		for(int i = 0; i<runs; ++i){
+			this.shuffle();
+			this.nearestNeighbor(StartCity);
+			this.simulatedAnnealing(temperature, coolingRate);
+			if(this.calDistance() < cache.calDistance()){
+				cache.tour = this.tour;
+			}
+		}
+		this.tour = cache.tour;
+		calDistance();
+		long endTime = System.currentTimeMillis() - startTime;
+		return endTime;
+	}
 }

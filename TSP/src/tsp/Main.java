@@ -32,7 +32,7 @@ class Panel extends JPanel{
 	void setArrayList(ArrayList<City> c){
 		this.drawCities = c;			
 	}
-
+	
 	protected void paintComponent(Graphics g){
 		super.paintComponent(g);
 		this.setBackground(Color.white);
@@ -76,6 +76,13 @@ public class Main {
 		return Distance;
 	}
 	
+	public static void printResults(int startCity, double temperature, double coolingRate, double distance, long runtime){
+		System.out.print(	"For starting city "+startCity+", a starting temperature of "+temperature+" and a cooling rate of "+
+				 			new DecimalFormat("#.#######").format(coolingRate)+" a minimal distance of "+
+				 			new DecimalFormat("#.#######").format(distance)+" was calculated in "+runtime+"ms\n"
+				 		);
+	}
+	
 	public static Tour readFile(String path) throws IOException{
 		Tour newtour = new Tour();
 		BufferedReader br = new BufferedReader(new FileReader(path));
@@ -105,22 +112,23 @@ public class Main {
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException{
 		Tour curr_tour = new Tour();
-		int disp_fac=2;
+		int disp_fac=3;
 		try {
-//			curr_tour = readFile("src/tsp/berlin52.tsp");
-//			disp_fac=3;
- 			curr_tour = readFile("src/tsp/ch130.tsp");
- 			disp_fac=2;		// berlin 3 ch 2
+			curr_tour = readFile("src/tsp/berlin52.tsp");
+			disp_fac=3;
+// 			curr_tour = readFile("src/tsp/ch130.tsp");
+// 			disp_fac=2;		// berlin 3 ch 2
 		} catch (IOException e) {
 			e.printStackTrace();
 		}		
 		
+		/*
 		curr_tour.calDistance();
 		System.out.println("Erste Loesung (vor NN): "+curr_tour.total_distance);
 		// kNN		
 		curr_tour.shuffle();
 		curr_tour.nearestNeighbor(1);
-		System.out.println("Erste Lösung (nach NN): "+curr_tour.calDistance());
+		System.out.println("Erste Loesung (nach NN): "+curr_tour.calDistance());
 		// Protokoll Variablen
 		int i=0;
 		int best_index=0;
@@ -133,10 +141,10 @@ public class Main {
 		ArrayList<Double> solution_cooling = new ArrayList<Double>();
 		ArrayList<Long> solution_time = new ArrayList<Long>();
 		String csv ="";
-		//Änderung Temperatur
-		for(double temp = 10000; temp>900;temp-=2000){
-			//Änderung Cooling Rate
-			for(double cR=0.0006; cR>0.000003; cR=cR*0.1){
+		//Aenderung Temperatur
+		for(double temp = 100000; temp>900;temp-=5000){
+			//Aenderung Cooling Rate
+			for(double cR=0.0006; cR>0.0000003; cR=cR*0.1){
 				long startTime = System.currentTimeMillis();
 				curr_tour.simulatedAnnealing(temp, cR);
 				solution_value.add(curr_tour.calDistance());
@@ -153,7 +161,7 @@ public class Main {
 					best_index = i;
 					best_tour = new Tour((ArrayList<City>) curr_tour.tour.clone());
 				}
-				System.out.println("Lösung "+(i+1)+": temp - "+temp+" cooling Rate - "+new DecimalFormat("#.#######").format(cR)+" value - "+curr_tour.total_distance+ " time - "+totalTime+" ms");
+				System.out.println("Loesung "+(i+1)+": temp - "+temp+" cooling Rate - "+new DecimalFormat("#.#######").format(cR)+" value - "+curr_tour.total_distance+ " time - "+totalTime+" ms");
 				csv += temp+";"+new DecimalFormat("#.#######").format(cR)+";"+new DecimalFormat("#.#######").format(curr_tour.total_distance)+";"+totalTime;
 				csv+= "\n";
 				i++;
@@ -161,8 +169,8 @@ public class Main {
 		}
 		System.out.println("-----------------");
 		//beste: 7542 (berlin) 6110 (ch130)
-//		System.out.println("Beste Lösung ("+(best_index+1)+"): "+ solution_value.get(best_index)+ " in "+solution_time.get(best_index)+" ms mit temp: "+solution_temp.get(best_index)+" - cooling Rate: "+new DecimalFormat("#.#####").format(solution_cooling.get(best_index)));
-		System.out.println("Beste Lösung: "+ best_value+ " in "+best_time+" ms mit temp: "+best_temp+" - cooling Rate: "+new DecimalFormat("#.#######").format(best_cooling));
+//		System.out.println("Beste Loesung ("+(best_index+1)+"): "+ solution_value.get(best_index)+ " in "+solution_time.get(best_index)+" ms mit temp: "+solution_temp.get(best_index)+" - cooling Rate: "+new DecimalFormat("#.#####").format(solution_cooling.get(best_index)));
+		System.out.println("Beste Loesung: "+ best_value+ " in "+best_time+" ms mit temp: "+best_temp+" - cooling Rate: "+new DecimalFormat("#.#######").format(best_cooling));
 		System.out.println("Tour: "+best_tour);
 		
 		//write File
@@ -170,6 +178,19 @@ public class Main {
 		writer.println(csv);
 		writer.close();
 		
+		*/
+		
+		int 	startCity 		= 0;
+		double 	temperature 	= 100;
+		double 	coolingRate		= 0.0000003;
+		int 	runs			= 1;
+		
+		for(int i = 0; i<curr_tour.tour.size(); ++i){
+			long runtime = curr_tour.runAll(i, temperature, coolingRate, runs);
+			printResults(i, temperature, coolingRate, curr_tour.calDistance(), runtime);
+		}
+		
+		/*
 		//Graphische Ausgabe
 		JFrame fa = new JFrame("Graph");
 		fa.setVisible(true);
@@ -177,5 +198,6 @@ public class Main {
 		fa.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JPanel pa = new Panel(curr_tour.tour, disp_fac);
 		fa.add(pa);
+		*/
 	}
 }
