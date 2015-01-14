@@ -126,6 +126,7 @@ public class Main {
 		for(int i = 0; i < s; ++i){
 		System.out.print("Now entering round "+i+" from "+s);	
 		long runStartTime = System.currentTimeMillis();
+		curr_tour.shuffle();
 		curr_tour.nearestNeighbor(i);
 		nndistance[i] = curr_tour.calDistance();
 		
@@ -136,10 +137,10 @@ public class Main {
 		//----- SIMULATED ANNEALING ALGORITHM -----
 		
 		// temperature
-		double temp = 100000;
+		double temp = 100;
 		
 		// cooling rate
-		double coolingRate = 0.00001;
+		double coolingRate = 0.0000003;
 		
 		
 		Tour best = new Tour(curr_tour.tour);
